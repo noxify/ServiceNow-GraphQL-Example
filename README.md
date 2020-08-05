@@ -29,6 +29,7 @@
     - [Get all incidents - Advanced](#get-all-incidents---advanced)
   - [GraphQL filters](#graphql-filters)
     - [Examples](#examples)
+  - [Extend the schema](#extend-the-schema)
 - [Visual Studio Code](#visual-studio-code)
 - [Mock Generator](#mock-generator)
 - [Conclusion](#conclusion)
@@ -46,6 +47,7 @@
 * [Insomnia](http://insomnia.rest/)
 * [MomentJS](https://www.momentjs.com)
 * [UnderscoreJS](https://www.underscorejs.org)
+* [GraphQL](https://graphql.org/)
 
 ## What is not included
 
@@ -536,6 +538,50 @@ allIncident(filter:{state:{eq:NEW}, urgency: {eq:LOW}})
 allIncident(filter:{state:{in:[NEW, IN_PROGRESS]}, urgency: {in:[LOW, HIGH]}})
 ```
 
+## Extend the schema
+
+In case you need other fields available in your schema, you have to do the following steps.
+In this example, we're using the `assigned_to` field.
+
+1. Update the schema
+
+We have to create a new field inside the `Incident` type.
+Since all fields are lowerCamelCase, the field will be named as `assignedTo`.
+
+```js
+resolvedBy: User @source(value: "assignedTo.value")
+```
+
+We're using `User` as field type, otherwise we have no access to the user related fields.
+
+The addition `@source(value: "assignedTo.value")` is used to have access in the scripted resolver via `getSource()`.
+
+2. Update the Script Include
+
+In the `GraphQLExampleUtilities.initialize` you have to update the `mapping` for the `incident` definition.
+Just add the following at the end:
+
+```js
+assignedTo: { display: false, useQuery: false, field: 'assigned_to' },
+```
+
+* The key ( `assignedTo` ) is the same as in your schema - It's important that the name is the same. Otherwise you will have a lot of errors ;) 
+* `display` defines if `getDisplayValue` or `getValue` should be used.
+* `useQuery` defines if the database value should be replaced with the defined value in `queryBuilder`
+* `field` defines the field name in the database
+
+3. Define a new schema mapping
+
+Like in the how to above, we need a new resolver mapping to get the related user information:
+
+| Path                    | Resolver                           |
+|-------------------------|------------------------------------|
+| Incident:assignedTo     | Resolver - Get User by id          |
+
+4. You're done
+
+If you want to implement other fields like `service` or something else, please make sure
+you have created a `Scripted Resolver` and that you have defined a new `type` in the schema.
 
 # Visual Studio Code
 

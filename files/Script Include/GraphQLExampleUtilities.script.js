@@ -204,7 +204,6 @@ GraphQLExampleUtilities.prototype = {
     }
     grRecord.query();
     var records = [];
-    
     while (grRecord.next()) {
       records.push(this.createResponseObject(grRecord, module, this.mapping[ module ]));
     }
