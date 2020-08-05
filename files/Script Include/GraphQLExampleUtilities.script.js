@@ -191,17 +191,50 @@ GraphQLExampleUtilities.prototype = {
    * Gets a list of records based on the given credentials
    * and converts it to the expected graphql object
    * 
-   * @param {String} module The current module e.g. incident or user
-   * @param {String} query  The query which should be execute
+   * @param {String}          module    The current module e.g. incident or user
+   * @param {String}          query     The query which should be execute
+   * @param {Object|Boolean}  paginate  The pagination config
+   * @param {Object|Boolean}  sort      The sort config
    * 
    * @return {Array} The result with the generated objects
    */
-  getRecordList: function (module, query) {
+  getRecordList: function (module, query, paginate, sort) {
+
     var moduleConfig = this.table[ module ];
+
+    //count all records
+    var grCount = new GlideAggregate(moduleConfig.tableName);
+    grCount.addAggregate('COUNT');
+    if (query) {
+      grCount.addEncodedQuery(query);
+    }
+    grCount.query();
+
+    var countResult = (grCount.next()) ? grCount.getAggregate('COUNT') : 0;
+
+    //fetch the records
     var grRecord = new GlideRecord(moduleConfig.tableName);
+
     if (query) {
       grRecord.addEncodedQuery(query);
     }
+
+    //add paging if defined
+    if (paginate) {
+      var rowStart = (paginate.perPage * paginate.page) - paginate.perPage;
+      var rowEnd = (paginate.perPage * paginate.page);
+      grRecord.chooseWindow(rowStart, rowEnd);
+    }
+
+    //add sorting if defined
+    if (sort) {
+      if (!sort.order || sort.order == 'ASC') {
+        grRecord.orderBy(this.mapping[ module ][ sort.by ][ 'field' ]);
+      } else {
+        grRecord.orderByDesc(this.mapping[ module ][ sort.by ][ 'field' ]);
+      }
+    }
+
     grRecord.query();
     var records = [];
     while (grRecord.next()) {
@@ -209,6 +242,10 @@ GraphQLExampleUtilities.prototype = {
     }
 
     return {
+      pageInfo: {
+        totalPages: (paginate) ? Math.round(countResult / paginate.perPage) : 1,
+        currentPage: (paginate) ? paginate.page : 1
+      },
       rowCount: records.length,
       results: records
     };

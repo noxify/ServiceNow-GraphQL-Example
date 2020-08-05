@@ -28,7 +28,10 @@
     - [Get all incidents - Simple](#get-all-incidents---simple)
     - [Get all incidents - Advanced](#get-all-incidents---advanced)
   - [GraphQL filters](#graphql-filters)
-    - [Examples](#examples)
+    - [Example](#example)
+  - [GraphQL Paging & Sorting](#graphql-paging--sorting)
+    - [Example - Paging](#example---paging)
+    - [Example - Sorting](#example---sorting)
   - [Extend the schema](#extend-the-schema)
 - [Visual Studio Code](#visual-studio-code)
 - [Mock Generator](#mock-generator)
@@ -51,10 +54,6 @@
 
 ## What is not included
 
-Paging is not implemented ( and there is no OOTB functionality to integrate it ).
-But should be easy to implement it.
-
-
 I have excluded the mutation handling for this example.
 If you need an example for this, please install the Application "GraphQL Framework Demo Application" ( app id: com.glide.graphql.framework.demo ) via the internal SN App Store.
 
@@ -67,6 +66,8 @@ If you need an example for this, please install the Application "GraphQL Framewo
 * Possibility to filter child incidents
 * Simple filter criteria handling
 * Reusable code => **DRY**
+* Paging
+* Sorting
 
 
 ## Files explained
@@ -524,7 +525,7 @@ To do this, you have to
 2. create new inputs in the GraphQL schema
 3. update the `IncidentQueryFilter` with the new searchable fields ( like `openedAt` )
 
-### Examples
+### Example
 
 * Use `allIncident` to find all incidents with state `NEW`(=1) and urgency `LOW` (=3):
 
@@ -536,6 +537,119 @@ allIncident(filter:{state:{eq:NEW}, urgency: {eq:LOW}})
 
 ```
 allIncident(filter:{state:{in:[NEW, IN_PROGRESS]}, urgency: {in:[LOW, HIGH]}})
+```
+
+
+## GraphQL Paging & Sorting
+
+Since there is no `@paginate` directive in the ServiceNow GraphQL implementation,
+With this example you will get a simple implementation for
+
+* Paging - uses `chooseWindow()`
+* Sorting - uses `orderBy()` / `orderByDesc()`
+  
+
+### Example - Paging
+
+GraphQL Request:
+
+```
+{
+  x116934Graphql {
+    example {
+      allIncident(paginate: {perPage:10, page:2}) {
+        rowCount
+        pageInfo {
+          totalPages
+          currentPage
+        }
+        results {
+          number
+        }
+      }
+    }
+  }
+}
+
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "x116934Graphql": {
+      "example": {
+        "allIncident": {
+          "rowCount": 10,
+          "pageInfo": {
+            "totalPages": 106,
+            "currentPage": 2
+          },
+          "results": [{
+              "number": "INC0010401"
+            },
+            {
+              "number": "INC0010990"
+            },
+            //...
+          ]
+        }
+      }
+    }
+  }
+}
+```
+
+### Example - Sorting
+
+GraphQL Request:
+
+```
+{
+  x116934Graphql {
+    example {
+      allIncident(paginate: {perPage:10, page:2}, sort: {by: "number", order:DESC}) {
+        rowCount
+        pageInfo {
+          totalPages
+          currentPage
+        }
+        results {
+          number
+        }
+      }
+    }
+  }
+}
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "x116934Graphql": {
+      "example": {
+        "allIncident": {
+          "rowCount": 10,
+          "pageInfo": {
+            "totalPages": 106,
+            "currentPage": 2
+          },
+          "results": [{
+              "number": "INC0010991"
+            },
+            {
+              "number": "INC0010990"
+            },
+            //...
+          ]
+        }
+      }
+    }
+  }
+}
 ```
 
 ## Extend the schema

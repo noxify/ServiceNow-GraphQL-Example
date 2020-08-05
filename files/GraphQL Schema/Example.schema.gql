@@ -3,7 +3,7 @@ schema {
 }
 
 type Query {
-	allIncident(filter:IncidentQueryFilter): IncidentResultList
+	allIncident(filter:IncidentQueryFilter, paginate: QueryPaginate, sort: QuerySort): IncidentResultList
 	incident(number: String!): Incident
 }
 
@@ -33,7 +33,23 @@ type User {
 
 type IncidentResultList {
   rowCount: Int
+  pageInfo: PageInfo
   results: [Incident]
+}
+
+type PageInfo {
+  totalPages: Int
+  currentPage: Int
+}
+
+input QueryPaginate {
+  perPage: Int
+  page: Int
+}
+
+input QuerySort {
+  by: String!
+  order:SortOrder
 }
 
 input IncidentQueryFilter {
@@ -45,6 +61,10 @@ input IncidentQueryFilter {
   priority: IncidentPriorityOperatorInput
 }
 
+enum SortOrder {
+  ASC
+  DESC
+}
 enum IncidentState {
   #Incident is logged but not yet triaged.
   NEW
