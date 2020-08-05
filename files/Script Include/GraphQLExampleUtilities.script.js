@@ -1,9 +1,10 @@
 gs.include('_');
+gs.include('moment.js');
 
 var GraphQLExampleUtilities = Class.create();
 
 GraphQLExampleUtilities.prototype = {
-  
+
   type: 'GraphQLExampleUtilities',
 
   initialize: function () {
@@ -32,7 +33,7 @@ GraphQLExampleUtilities.prototype = {
         resolvedAt: { display: false, field: 'resolved_at' },
         closedAt: { display: false, field: 'closed_at' },
         parentIncident: { display: true, field: 'parent_incident' },
-        childIncidents: {display: false, field: 'sys_id'}
+        childIncidents: { display: false, field: 'sys_id' }
       },
 
       user: {
@@ -160,6 +161,23 @@ GraphQLExampleUtilities.prototype = {
     var grRecord = new GlideRecord(moduleConfig.tableName);
     var exists = grRecord.get(moduleConfig.queryField, value);
     return (exists) ? this.createResponseObject(grRecord, this.mapping[ module ]) : null;
+  },
+
+  /**
+   * Converts the given date string based on the given format
+   * Also the given date will be returned as UTC date
+   * 
+   * Valid formats can be found here:
+   * https://momentjs.com/docs/#/displaying/format/
+   * 
+   * @param {String} value The date/time string
+   * @param {String} format The format which should be used
+   * 
+   * @return {String} the formatted date
+   */
+  getFormattedDate: function (value, format) {
+    var currentDate = moment(value);
+    return currentDate.utc().format(format);
   },
 
   /**
