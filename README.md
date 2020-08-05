@@ -16,12 +16,22 @@
     - [Script Include: moment.js](#script-include-momentjs)
     - [Script Include: _](#script-include-_)
 - [How To](#how-to)
-  - [Create the script includes](#create-the-script-includes)
-  - [Enable GraphQL](#enable-graphql)
-  - [Create a new schema](#create-a-new-schema)
-  - [Create the schema resolver](#create-the-schema-resolver)
-  - [Create the resolver mappings](#create-the-resolver-mappings)
-- [Testing](#testing)
+  - [Build](#build)
+    - [Create the script includes](#create-the-script-includes)
+    - [Enable GraphQL](#enable-graphql)
+    - [Create a new schema](#create-a-new-schema)
+    - [Create the schema resolver](#create-the-schema-resolver)
+    - [Create the resolver mappings](#create-the-resolver-mappings)
+  - [Test](#test)
+    - [Get one incident - Simple](#get-one-incident---simple)
+    - [Get one incident - Advanced](#get-one-incident---advanced)
+    - [Get all incidents - Simple](#get-all-incidents---simple)
+    - [Get all incidents - Advanced](#get-all-incidents---advanced)
+  - [GraphQL filters](#graphql-filters)
+    - [Examples](#examples)
+- [Visual Studio Code](#visual-studio-code)
+- [Mock Generator](#mock-generator)
+- [Conclusion](#conclusion)
 
 ## What do we need
 
@@ -39,8 +49,11 @@
 
 ## What is not included
 
-I have excluded the mutation handling from this example.
+Paging is not implemented ( and there is no OOTB functionality to integrate it ).
+But should be easy to implement it.
 
+
+I have excluded the mutation handling for this example.
 If you need an example for this, please install the Application "GraphQL Framework Demo Application" ( app id: com.glide.graphql.framework.demo ) via the internal SN App Store.
 
 ## What is included
@@ -50,7 +63,7 @@ If you need an example for this, please install the Application "GraphQL Framewo
   * One-To-One (e.g. Opened By)
   * One-To-Many (e.g. Child Incidents)
 * Possibility to filter child incidents
-* Simple filter criteria handling ( Supported Operators `eq`, `ne`, `in` )
+* Simple filter criteria handling
 * Reusable code => **DRY**
 
 
@@ -125,7 +138,8 @@ Duplicated from a existing Script Include.
 
 # How To
 
-## Create the script includes
+## Build
+### Create the script includes
 
 As you can see in the `files/Script Include/` directory, there are three files which you have to create:
 
@@ -135,12 +149,12 @@ As you can see in the `files/Script Include/` directory, there are three files w
 | `moment.js`                  | Use `files/Script Include/moment.js.script.js`               |
 | `GraphQLExampleUtilities.js` | Use `files/Script Include/GraphQLExampleUtilities.script.js` |
 
-## Enable GraphQL
+### Enable GraphQL
 
 In the navigator, go to `System Web Services > GraphQL > Properties`.
 In my example, I have activated all checkboxes.
 
-## Create a new schema
+### Create a new schema
 
 In the navigator, go to `System Web Services > GraphQL > GraphQL APIs`.
 
@@ -160,7 +174,7 @@ Click the `New` button and fill the fields with the following values:
 
 Click the `Submit` button to create the new GraphQL API.
 
-## Create the schema resolver
+### Create the schema resolver
 
 In your created schema, you should see now the tab `GraphQL Scripted Resolvers`.
 
@@ -177,7 +191,7 @@ You have to create the following records:
 | Resolver - Get incidents by filter | Use `files/GraphQL Scripted Resolver/Resolver - Get incidents by filter.script.js` |
 | Resolver - Get User by id          | Use `files/GraphQL Scripted Resolver/Resolver - Get User by id.script.js` |
 
-## Create the resolver mappings
+### Create the resolver mappings
 
 In your created schema, you should see now the tab `GraphQL Resolver Mappings`.
 
@@ -186,10 +200,387 @@ You have to create the following records:
 | Path                    | Resolver                           |
 |-------------------------|------------------------------------|
 | Query:incident          | Resolver - Get incident by number  |
-| Incident:openedAt       | Resolver - Format Date             |
-| Incident:childIncidents | Resolver - Get Child Incidents     |
 | Query:allIncident       | Resolver - Get incidents by filter |
+| Incident:openedAt       | Resolver - Format Date             |
+| Incident:resolvedAt     | Resolver - Format Date             |
+| Incident:closedAt       | Resolver - Format Date             |
+| Incident:childIncidents | Resolver - Get Child Incidents     |
 | Incident:parentIncident | Resolver - Get incident by number  | 
 | Incident:openedBy       | Resolver - Get User by id          |
+| Incident:resolvedBy     | Resolver - Get User by id          |
 
-# Testing
+## Test
+
+All requests have the same config:
+
+* Method: `POST`
+* Endpoint: `https://<instancename>.service-now.com/api/now/graphql`
+* Auth
+  * Type: Basic
+  * Username/Password: Only you know it ;)
+
+### Get one incident - Simple
+
+Body:
+
+> Please make sure, that you replace `x116934Graphql` with your Application namespace.
+> You can find your Application namespace in the `GraphQL API` record.
+
+```
+{
+  x116934Graphql {
+    example {
+      incident(number: "INC0007001") {
+        id
+        number
+        openedBy {
+          id
+          email
+        }
+        resolvedBy {
+          id
+          email
+        }
+        openedAt
+      }
+      
+    }
+  }
+}
+```
+
+The result should be something like:
+
+```json
+{
+    "data": {
+        "x116934Graphql": {
+            "example": {
+                "incident": {
+                    "id": "f12ca184735123002728660c4cf6a7ef",
+                    "number": "INC0007001",
+                    "openedBy": {
+                        "id": "6816f79cc0a8016401c5a33be04be441",
+                        "email": "admin@example.com"
+                    },
+                    "resolvedBy": null,
+                    "openedAt": "2018-10-17T12:47:10Z"
+                }
+            }
+        }
+    }
+}
+```
+
+### Get one incident - Advanced
+
+Body:
+
+> Please make sure, that you replace `x116934Graphql` with your Application namespace.
+> You can find your Application namespace in the `GraphQL API` record.
+
+```gql
+{
+  x116934Graphql {
+    example {
+      incident(number: "INC0007001") {
+        id
+        number
+        state
+        impact
+        urgency
+        priority
+        openedBy {
+          id
+          email
+        }
+        resolvedBy {
+          id
+        }
+        formattedOpenedAt : openedAt(format: "DD.MM.Y")
+        openedAt
+        resolvedAt
+        closedAt
+        parentIncident {
+          id
+          number
+          openedAt
+        }
+        newChilds: childIncidents(filter:{state:{eq:NEW}}) {
+          results {
+            id
+            number
+            state
+            parentIncident {
+              number
+            }
+            openedBy {
+              email
+            }
+          }
+        }
+        allChilds: childIncidents {
+          results {
+            id
+            number
+            state
+          }
+        }
+      }
+      
+    }
+  }
+}
+```
+
+The result should be something like:
+
+```json
+{
+  "data": {
+    "x116934Graphql": {
+      "example": {
+        "incident": {
+          "id": "f12ca184735123002728660c4cf6a7ef",
+          "number": "INC0007001",
+          "state": "NEW",
+          "impact": "HIGH",
+          "urgency": "HIGH",
+          "priority": "CRITICAL",
+          "openedBy": {
+            "id": "6816f79cc0a8016401c5a33be04be441",
+            "email": "admin@example.com"
+          },
+          "resolvedBy": null,
+          "formattedOpenedAt": "17.10.2018",
+          "openedAt": "2018-10-17T12:47:10Z",
+          "resolvedAt": null,
+          "closedAt": null,
+          "parentIncident": null,
+          "newChilds": {
+            "results": [{
+              "id": "ff4c21c4735123002728660c4cf6a758",
+              "number": "INC0007002",
+              "state": "NEW",
+              "parentIncident": {
+                "number": "INC0007001"
+              },
+              "openedBy": {
+                "email": "admin@example.com"
+              }
+            }]
+          },
+          "allChilds": {
+            "results": [{
+                "id": "46c03489a9fe19810148cd5b8cbf501e",
+                "number": "INC0000011",
+                "state": "CLOSED"
+              },
+              {
+                "id": "e8caedcbc0a80164017df472f39eaed1",
+                "number": "INC0000003",
+                "state": "IN_PROGRESS"
+              },
+              {
+                "id": "ff4c21c4735123002728660c4cf6a758",
+                "number": "INC0007002",
+                "state": "NEW"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Get all incidents - Simple
+
+Body:
+
+> Please make sure, that you replace `x116934Graphql` with your Application namespace.
+> You can find your Application namespace in the `GraphQL API` record.
+
+```gql
+{
+  x116934Graphql {
+    example {
+      allIncident {
+        rowCount
+        results {
+          id
+          number
+        }
+      }
+    }
+  }
+}
+```
+
+The result should be something like:
+
+```json
+{
+  "data": {
+    "x116934Graphql": {
+      "example": {
+        "allIncident": {
+          "rowCount": 1064,
+          "results": [
+            {
+              "id": "1c741bd70b2322007518478d83673af3",
+              "number": "INC0000060"
+            },
+            {
+              "id": "1c832706732023002728660c4cf6a7b9",
+              "number": "INC0009002"
+            },
+            //...
+          ]
+        }
+      }
+    }
+  }
+}
+```
+
+### Get all incidents - Advanced
+
+Body:
+
+> Please make sure, that you replace `x116934Graphql` with your Application namespace.
+> You can find your Application namespace in the `GraphQL API` record.
+
+```gql
+{
+  x116934Graphql {
+    example {
+      allIncident(filter: {number: {in: ["INC0007001", "INC0007002"]}}) {
+        rowCount
+        results {
+          id
+          number
+          parentIncident {
+            number
+          }
+        }
+      }
+    }
+  }
+}
+
+```
+
+The result should be something like:
+
+```json
+{
+  "data": {
+    "x116934Graphql": {
+      "example": {
+        "allIncident": {
+          "rowCount": 2,
+          "results": [
+            {
+              "id": "f12ca184735123002728660c4cf6a7ef",
+              "number": "INC0007001",
+              "parentIncident": null
+            },
+            {
+              "id": "ff4c21c4735123002728660c4cf6a758",
+              "number": "INC0007002",
+              "parentIncident": {
+                "number": "INC0007001"
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+```
+
+## GraphQL filters
+
+I'm a [Gridsome](https://www.gridsome.org) lover and here we have some builtin filters.
+I used these filters as startpoint for the implementation.
+
+Currently only the following filter operators are allowed:
+
+| GraphQL Operator | ServiceNow Operator |
+|------------------|---------------------|
+| eq               | =                   |
+| ne               | !=                  |
+| in               | IN                  |
+
+You can easily extend the operators to add operators like `lte`, `lt`, `gt`, `gte`.
+
+To do this, you have to 
+1. extend the `generateQuery` method
+2. create new inputs in the GraphQL schema
+3. update the `IncidentQueryFilter` with the new searchable fields ( like `openedAt` )
+
+### Examples
+
+* Use `allIncident` to find all incidents with state `NEW`(=1) and urgency `LOW` (=3):
+
+```
+allIncident(filter:{state:{eq:NEW}, urgency: {eq:LOW}})
+```
+
+* Use `allIncident` to find all incidents which have state `NEW` or `IN_PROGRESS` and have urgency `LOW` or `HIGH`
+
+```
+allIncident(filter:{state:{in:[NEW, IN_PROGRESS]}, urgency: {in:[LOW, HIGH]}})
+```
+
+
+# Visual Studio Code
+
+If you're using the ServiceNow VSC Extension, here the content of my `app.config.json` for the GraphQL tables:
+
+```json
+{
+  "CustomFileTypes": {
+    "sys_graphql_typeresolver": {
+      "superCoverName": "Miscellaneous",
+      "create": "no",
+      "coverName": "GraphQL Type Resolver",
+      "tags": {
+        "script": "js"
+      }
+    },
+    "sys_graphql_resolver": {
+      "superCoverName": "Miscellaneous",
+      "create": "no",
+      "coverName": "GraphQL Scripted Resolver",
+      "tags": {
+        "script": "js"
+      }
+    },
+    "sys_graphql_schema": {
+      "superCoverName": "Miscellaneous",
+      "create": "no",
+      "coverName": "GraphQL Schema",
+      "tags": {
+        "schema": "gql"
+      }
+    }
+  }
+}
+```
+
+# Mock Generator
+
+I created a small background script, which generates the configured amount of incidents with some basic information.
+
+You can find the script here: `files/Background Script/incident_mock.js`
+
+# Conclusion
+
+I personally love GraphQL and the benefits to have only one API instead of creating new API versions all the time.
+Also to have the possibility as consumer to define only the required fields helps to reduce the response size.
+
+

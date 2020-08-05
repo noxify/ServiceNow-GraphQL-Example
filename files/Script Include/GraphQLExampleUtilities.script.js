@@ -1,3 +1,32 @@
+/**
+ * 
+ * REPOSITORY: https://github.com/noxify/ServiceNow-GraphQL-Example
+ * 
+ * ---------------
+ * 
+ * MIT License
+ *
+ * Copyright (c) 2020 Marcus Reinhardt
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 gs.include('_');
 gs.include('moment.js');
 
@@ -25,15 +54,20 @@ GraphQLExampleUtilities.prototype = {
     //response
     this.mapping = {
       incident: {
-        id: { display: false, field: 'sys_id' },
-        number: { display: false, field: 'number' },
-        openedBy: { display: false, field: 'opened_by' },
-        resolvedBy: { display: false, field: 'resolved_by' },
-        openedAt: { display: false, field: 'opened_at' },
-        resolvedAt: { display: false, field: 'resolved_at' },
-        closedAt: { display: false, field: 'closed_at' },
-        parentIncident: { display: true, field: 'parent_incident' },
-        childIncidents: { display: false, field: 'sys_id' }
+        id: { display: false, useQuery: false, field: 'sys_id' },
+        number: { display: false, useQuery: false, field: 'number' },
+        openedBy: { display: false, useQuery: false, field: 'opened_by' },
+        resolvedBy: { display: false, useQuery: false, field: 'resolved_by' },
+        openedAt: { display: false, useQuery: false, field: 'opened_at' },
+        resolvedAt: { display: false, useQuery: false, field: 'resolved_at' },
+        closedAt: { display: false, useQuery: false, field: 'closed_at' },
+        urgency: { display: false, useQuery: true, field: 'urgency' },
+        impact: { display: false, useQuery: true, field: 'impact' },
+        priority: { display: false, useQuery: true, field: 'priority' },
+        contactType: { display: false, useQuery: true, field: 'contact_type' },
+        state: { display: false, useQuery: true, field: 'state' },
+        parentIncident: { display: true, useQuery: false, field: 'parent_incident' },
+        childIncidents: { display: false, useQuery: false, field: 'sys_id' },
       },
 
       user: {
@@ -109,8 +143,7 @@ GraphQLExampleUtilities.prototype = {
       var targetField = (that.mapping[ module ][ field ]) ? that.mapping[ module ][ field ].field : field;
 
       return _.map(definition, function (value, op) {
-        value = (_.isArray(value)) ? value.join(',') : value;
-        value = (that.queryBuilder[ module ][ field ]) ? that.queryBuilder[ module ][ field ][ value ] : value;
+        value = that.convertQueryValue(module, field, value);
         return targetField + that.operators[ op ] + value;
       });
     });
@@ -118,6 +151,40 @@ GraphQLExampleUtilities.prototype = {
     query = _.flatten(query);
 
     return query.join('^');
+  },
+
+  /**
+   * Converts the given query value.
+   * It uses the definition from `queryBuilder` for the convert
+   * 
+   * @example 
+   * convertQueryValue('incident', 'number', 'INC1234')
+   * //returns: INC1234
+   * 
+   * convertQueryValue('incident', 'state', ['NEW', 'IN_PROGRESS'])
+   * //returns: 1,2
+   * 
+   * convertQueryValue('incident', 'contactType', 'WALK_IN')
+   * //returns: walk-in
+   * 
+   * @param {String} module The current module
+   * @param {String} field The current field name
+   * @param {String|Array} value The value to convert
+   * 
+   * @return {String} converted value
+   */
+  convertQueryValue: function (module, field, value) {
+
+    var that = this;
+    var newValue = (!_.isArray(value)) ? [ value ] : value;
+
+    return _.map(newValue, function (fieldValue) {
+      try {
+        return that.queryBuilder[ module ][ field ][ fieldValue ];
+      } catch (e) {
+        return fieldValue;
+      }
+    }).join(',');
   },
 
   /**
@@ -137,8 +204,9 @@ GraphQLExampleUtilities.prototype = {
     }
     grRecord.query();
     var records = [];
+    
     while (grRecord.next()) {
-      records.push(this.createResponseObject(grRecord, this.mapping[ module ]));
+      records.push(this.createResponseObject(grRecord, module, this.mapping[ module ]));
     }
 
     return {
@@ -160,7 +228,7 @@ GraphQLExampleUtilities.prototype = {
     var moduleConfig = this.table[ module ];
     var grRecord = new GlideRecord(moduleConfig.tableName);
     var exists = grRecord.get(moduleConfig.queryField, value);
-    return (exists) ? this.createResponseObject(grRecord, this.mapping[ module ]) : null;
+    return (exists) ? this.createResponseObject(grRecord, module, this.mapping[ module ]) : null;
   },
 
   /**
@@ -176,6 +244,7 @@ GraphQLExampleUtilities.prototype = {
    * @return {String} the formatted date
    */
   getFormattedDate: function (value, format) {
+    if (!value) return null;
     var currentDate = moment(value);
     return currentDate.utc().format(format);
   },
@@ -189,9 +258,17 @@ GraphQLExampleUtilities.prototype = {
    * 
    * @return {Object}
    */
-  createResponseObject: function (grRecord, objMapping) {
-    return _.mapObject(objMapping, function (fieldDef) {
-      return (fieldDef.display === true) ? grRecord.getDisplayValue(fieldDef.field) : grRecord.getValue(fieldDef.field);
+  createResponseObject: function (grRecord, module, objMapping) {
+    var that = this;
+    return _.mapObject(objMapping, function (fieldDef, propertyName) {
+      var value = (fieldDef.display === true) ? grRecord.getDisplayValue(fieldDef.field) : grRecord.getValue(fieldDef.field);
+      if (fieldDef.useQuery) {
+        var selection = _.invert(that.queryBuilder[ module ][ propertyName ]);
+        if (selection[ value ]) {
+          value = selection[ value ];
+        }
+      }
+      return value;
     });
   }
 };

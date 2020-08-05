@@ -1,5 +1,5 @@
 schema {
-    query: Query
+  query: Query
 }
 
 type Query {
@@ -7,29 +7,23 @@ type Query {
 	incident(number: String!): Incident
 }
 
-interface Record {
-	id: ID!
-	number: String!
-}
 
-type Incident implements Record {
-    id: ID!
+type Incident {
+  id: ID!
 	number: String!
-    active: Boolean
-    state: String @source(value: "state.display_value")    
-    priority: String @source(value: "priority.display_value")
-    severity: String
-    description: String
-    resolvedBy: User @source(value: "resolvedBy.value")
-    openedBy: User @source(value: "openedBy.value")
-#    child_incidents: String
-    openedAt(format:String): String @source(value: "openedAt.value")
-    resolvedAt(format:String): String @source(value: "resolvedAt.value")
-    closedAt(format:String): String @source(value: "closedAt.value")
-#    work_notes: String    
-#    comments: String @source(value: "comments.display_value")
-    parentIncident: Incident @source(value: "parentIncident.value")
-    childIncidents(filter:IncidentQueryFilter): IncidentResultList @source(value: "childIncidents.value")
+  active: Boolean
+  state: IncidentState @source(value: "state.value")
+  priority: IncidentPriority @source(value: "priority.value")
+  impact: IncidentImpact @source(value: "impact.value")
+  urgency: IncidentUrgency @source(value: "urgency.value")
+  description: String
+  resolvedBy: User @source(value: "resolvedBy.value")
+  openedBy: User @source(value: "openedBy.value")
+  openedAt(format:String): String @source(value: "openedAt.value")
+  resolvedAt(format:String): String @source(value: "resolvedAt.value")
+  closedAt(format:String): String @source(value: "closedAt.value")
+  parentIncident: Incident @source(value: "parentIncident.value")
+  childIncidents(filter:IncidentQueryFilter): IncidentResultList @source(value: "childIncidents.value")
 }
 
 type User {
@@ -38,53 +32,59 @@ type User {
 }
 
 type IncidentResultList {
-    rowCount: Int
-    results: [Incident]
+  rowCount: Int
+  results: [Incident]
 }
 
 input IncidentQueryFilter {
-    number: StringQueryOperatorInput
-    state: IncidentStateOperatorInput
-    contactType: IncidentContactTypeOperatorInput
-    impact: IncidentImpactOperatorInput
-    urgency: IncidentUrgencyOperatorInput
-    priority: IncidentPriorityOperatorInput
+  number: StringQueryOperatorInput
+  state: IncidentStateOperatorInput
+  contactType: IncidentContactTypeOperatorInput
+  impact: IncidentImpactOperatorInput
+  urgency: IncidentUrgencyOperatorInput
+  priority: IncidentPriorityOperatorInput
 }
 
 enum IncidentState {
-    NEW
-    IN_PROGRESS
-    ON_HOLD
-    RESOLVED
-    CLOSED
-    CANCELED
+  #Incident is logged but not yet triaged.
+  NEW
+  #Incident is assigned and is being investigated.
+  IN_PROGRESS
+  #The responsibility for the incident shifts temporarily to another entity to provide further information, evidence, or a resolution
+  ON_HOLD
+  #A satisfactory fix is provided for the incident to ensure that it does not occur again.
+  RESOLVED
+  #Incident is marked Closed after it is in the Resolved state for a specific duration and it is confirmed that the incident is satisfactorily resolved.
+  CLOSED
+  #Incident was triaged but found to be a duplicate incident, an unnecessary incident, or not an incident at all.
+  CANCELED
 }
 
 enum IncidentContactType {
-    EMAIL
-    PHONE
-    SELF_SERVICE
-    WALK_IN
+  EMAIL
+  PHONE
+  SELF_SERVICE
+  WALK_IN
 }
 
 enum IncidentImpact {
-    LOW
-    MEDIUM
-    HIGH
+  LOW
+  MEDIUM
+  HIGH
 }
 
 enum IncidentUrgency {
-    LOW
-    MEDIUM
-    HIGH
+  LOW
+  MEDIUM
+  HIGH
 }
 
 enum IncidentPriority {
-    PLANNING
-    LOW
-    MODERATE
-    HIGH
-    CRITICAL
+  PLANNING
+  LOW
+  MODERATE
+  HIGH
+  CRITICAL
 }
 
 input IDQueryOperatorInput {
