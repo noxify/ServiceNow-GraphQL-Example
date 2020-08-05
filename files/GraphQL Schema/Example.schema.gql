@@ -1,0 +1,151 @@
+schema {
+    query: Query
+}
+
+type Query {
+	allIncident(filter:IncidentQueryFilter): IncidentResultList
+	incident(number: String!): Incident
+}
+
+interface Record {
+	id: ID!
+	number: String!
+}
+
+type Incident implements Record {
+    id: ID!
+	number: String!
+    active: Boolean
+    state: String @source(value: "state.display_value")    
+    priority: String @source(value: "priority.display_value")
+    severity: String
+    description: String
+    resolvedBy: User @source(value: "resolvedBy.value")
+    openedBy: User @source(value: "openedBy.value")
+#    child_incidents: String
+    openedAt(format:String): String @source(value: "openedAt.value")
+    resolvedAt(format:String): String @source(value: "resolvedAt.value")
+    closedAt(format:String): String @source(value: "closedAt.value")
+#    work_notes: String    
+#    comments: String @source(value: "comments.display_value")
+    parentIncident: Incident @source(value: "parentIncident.value")
+    childIncidents(filter:IncidentQueryFilter): IncidentResultList @source(value: "childIncidents.value")
+}
+
+type User {
+	id: String
+	email: String
+}
+
+type IncidentResultList {
+    rowCount: Int
+    results: [Incident]
+}
+
+input IncidentQueryFilter {
+    number: StringQueryOperatorInput
+    state: IncidentStateOperatorInput
+    contactType: IncidentContactTypeOperatorInput
+    impact: IncidentImpactOperatorInput
+    urgency: IncidentUrgencyOperatorInput
+    priority: IncidentPriorityOperatorInput
+}
+
+enum IncidentState {
+    NEW
+    IN_PROGRESS
+    ON_HOLD
+    RESOLVED
+    CLOSED
+    CANCELED
+}
+
+enum IncidentContactType {
+    EMAIL
+    PHONE
+    SELF_SERVICE
+    WALK_IN
+}
+
+enum IncidentImpact {
+    LOW
+    MEDIUM
+    HIGH
+}
+
+enum IncidentUrgency {
+    LOW
+    MEDIUM
+    HIGH
+}
+
+enum IncidentPriority {
+    PLANNING
+    LOW
+    MODERATE
+    HIGH
+    CRITICAL
+}
+
+input IDQueryOperatorInput {
+  # Filter by property of (strict) equality.
+  eq: ID
+  # Filter by property not equal to provided value.
+  ne: ID
+  # Filter by property matching any of the provided values.
+  in: [ID]
+}
+
+input StringQueryOperatorInput {
+  # Filter by property of (strict) equality.
+  eq: String
+  # Filter by property not equal to provided value.
+  ne: String
+  # Filter by property matching any of the provided values.
+  in: [String]
+}
+
+input IncidentStateOperatorInput {
+  # Filter by property of (strict) equality.
+  eq: IncidentState
+  # Filter by property not equal to provided value.
+  ne: IncidentState
+  # Filter by property matching any of the provided values.
+  in: [IncidentState]
+}
+
+input IncidentContactTypeOperatorInput {
+  # Filter by property of (strict) equality.
+  eq: IncidentContactType
+  # Filter by property not equal to provided value.
+  ne: IncidentContactType
+  # Filter by property matching any of the provided values.
+  in: [IncidentContactType]
+}
+
+input IncidentUrgencyOperatorInput {
+  # Filter by property of (strict) equality.
+  eq: IncidentUrgency
+  # Filter by property not equal to provided value.
+  ne: IncidentUrgency
+  # Filter by property matching any of the provided values.
+  in: [IncidentUrgency]
+}
+
+input IncidentImpactOperatorInput {
+  # Filter by property of (strict) equality.
+  eq: IncidentImpact
+  # Filter by property not equal to provided value.
+  ne: IncidentImpact
+  # Filter by property matching any of the provided values.
+  in: [IncidentImpact]
+}
+
+input IncidentPriorityOperatorInput {
+  # Filter by property of (strict) equality.
+  eq: IncidentPriority
+  # Filter by property not equal to provided value.
+  ne: IncidentPriority
+  # Filter by property matching any of the provided values.
+  in: [IncidentPriority]
+}
