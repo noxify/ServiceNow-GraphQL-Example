@@ -1,1 +1,1 @@
-# snow_paris_graphql_example
+# ServiceNow GraphQL Example
