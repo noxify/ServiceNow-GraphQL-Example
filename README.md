@@ -146,11 +146,11 @@ Duplicated from a existing Script Include.
 
 As you can see in the `files/Script Include/` directory, there are three files which you have to create:
 
-| Script Include               | Content                                                      |
+| Script Include Name          | Content                                                      |
 |------------------------------|--------------------------------------------------------------|
 | `_`                          | Use `files/Script Include/_.script.js`                       |
 | `moment.js`                  | Use `files/Script Include/moment.js.script.js`               |
-| `GraphQLExampleUtilities.js` | Use `files/Script Include/GraphQLExampleUtilities.script.js` |
+| `GraphQLExampleUtilities`    | Use `files/Script Include/GraphQLExampleUtilities.script.js` |
 
 ### Enable GraphQL
 
