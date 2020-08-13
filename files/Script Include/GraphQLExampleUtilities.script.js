@@ -116,9 +116,9 @@ GraphQLExampleUtilities.prototype = {
 
     //Definition for the filter operators
     this.operators = {
-      eq: '=',
-      ne: '!=',
-      in: 'IN'
+      'eq': '=',
+      'ne': '!=',
+      'in': 'IN'
     };
   },
 
