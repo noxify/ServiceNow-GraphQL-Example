@@ -695,7 +695,9 @@ Like in the how to above, we need a new resolver mapping to get the related user
 4. You're done
 
 If you want to implement other fields like `service` or something else, please make sure
-you have created a `Scripted Resolver` and that you have defined a new `type` in the schema.
+
+* you have created a `Scripted Resolver` 
+* you have defined a new `type` in the schema
 
 # Visual Studio Code
 
