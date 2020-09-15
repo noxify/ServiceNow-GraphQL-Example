@@ -28,7 +28,7 @@
     - [Get all incidents - Simple](#get-all-incidents---simple)
     - [Get all incidents - Advanced](#get-all-incidents---advanced)
   - [GraphQL filters](#graphql-filters)
-    - [Example](#example)
+    - [Examples](#examples)
   - [GraphQL Paging & Sorting](#graphql-paging--sorting)
     - [Example - Paging](#example---paging)
     - [Example - Sorting](#example---sorting)
@@ -517,15 +517,23 @@ Currently only the following filter operators are allowed:
 | eq               | =                   |
 | ne               | !=                  |
 | in               | IN                  |
+| nin              | NOT IN              |
+| lt               | <                   |
+| lte              | <=                  |
+| gt               | >                   |
+| gte              | >=                  |
+| between          | BETWEEN             |
 
-You can easily extend the operators to add operators like `lte`, `lt`, `gt`, `gte`.
-
+You can easily extend the query operators
 To do this, you have to 
-1. extend the `generateQuery` method
+1. extend the `operators` definition in the `initialize` method
+   - here you can decide between 
+     - the default value transformation (e.g. converting `[A,B]` to `A,B`)
+     - or define your own logic which returns the needed the query part 
 2. create new inputs in the GraphQL schema
 3. update the `IncidentQueryFilter` with the new searchable fields ( like `openedAt` )
 
-### Example
+### Examples
 
 * Use `allIncident` to find all incidents with state `NEW`(=1) and urgency `LOW` (=3):
 
@@ -539,6 +547,17 @@ allIncident(filter:{state:{eq:NEW}, urgency: {eq:LOW}})
 allIncident(filter:{state:{in:[NEW, IN_PROGRESS]}, urgency: {in:[LOW, HIGH]}})
 ```
 
+* Use `allIncident` to find all incidents which have state `NEW` or `IN_PROGRESS` but the urgency is not `LOW` or `HIGH`
+
+```
+allIncident(filter:{state:{in:[NEW, IN_PROGRESS]}, urgency: {nin:[LOW, HIGH]}})
+```
+
+* Use `allIncident` to get all incidents between `INC0010000` and `INC0010010`
+
+```
+allIncident(filter:{number:{between:{from:"INC0010000", to: "INC0010010"}}})
+```
 
 ## GraphQL Paging & Sorting
 

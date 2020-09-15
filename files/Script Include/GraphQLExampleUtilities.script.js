@@ -50,8 +50,7 @@ GraphQLExampleUtilities.prototype = {
       }
     };
 
-    //Mapping which will be used as graphl
-    //response
+    //Mapping which will be used as graphl response
     this.mapping = {
       incident: {
         id: { display: false, useQuery: false, field: 'sys_id' },
@@ -76,8 +75,7 @@ GraphQLExampleUtilities.prototype = {
       }
     };
 
-    //Definition for the value replacement
-    //e.g. the GQL enums 
+    //Definition for the value replacement e.g. the GQL enums 
     this.queryBuilder = {
       incident: {
         state: {
@@ -118,7 +116,15 @@ GraphQLExampleUtilities.prototype = {
     this.operators = {
       'eq': '=',
       'ne': '!=',
-      'in': 'IN'
+      'in': 'IN',
+      'nin': 'NOT IN',
+      'lt': '<',
+      'lte': '<=',
+      'gt': '>',
+      'gte': '>=',
+      'between': function (field, value) {
+        return field + 'BETWEEN' + value.from + '@' + value.to;
+      }
     };
   },
 
@@ -143,8 +149,14 @@ GraphQLExampleUtilities.prototype = {
       var targetField = (that.mapping[ module ][ field ]) ? that.mapping[ module ][ field ].field : field;
 
       return _.map(definition, function (value, op) {
-        value = that.convertQueryValue(module, field, value);
-        return targetField + that.operators[ op ] + value;
+        //check if the current operator is a function
+        if (_.isFunction(that.operators[ op ])) {
+          return that.operators[ op ](targetField, value);
+        } else {
+          //if not, run the default behavior
+          value = that.convertQueryValue(module, field, value);
+          return targetField + that.operators[ op ] + value;
+        }
       });
     });
 

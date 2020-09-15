@@ -3,14 +3,17 @@ schema {
 }
 
 type Query {
-	allIncident(filter:IncidentQueryFilter, paginate: QueryPaginate, sort: QuerySort): IncidentResultList
-	incident(number: String!): Incident
+  allIncident(
+    filter: IncidentQueryFilter
+    paginate: QueryPaginate
+    sort: QuerySort
+  ): IncidentResultList
+  incident(number: String!): Incident
 }
-
 
 type Incident {
   id: ID!
-	number: String!
+  number: String!
   active: Boolean
   state: IncidentState @source(value: "state.value")
   priority: IncidentPriority @source(value: "priority.value")
@@ -19,16 +22,17 @@ type Incident {
   description: String
   resolvedBy: User @source(value: "resolvedBy.value")
   openedBy: User @source(value: "openedBy.value")
-  openedAt(format:String): String @source(value: "openedAt.value")
-  resolvedAt(format:String): String @source(value: "resolvedAt.value")
-  closedAt(format:String): String @source(value: "closedAt.value")
+  openedAt(format: String): String @source(value: "openedAt.value")
+  resolvedAt(format: String): String @source(value: "resolvedAt.value")
+  closedAt(format: String): String @source(value: "closedAt.value")
   parentIncident: Incident @source(value: "parentIncident.value")
-  childIncidents(filter:IncidentQueryFilter): IncidentResultList @source(value: "childIncidents.value")
+  childIncidents(filter: IncidentQueryFilter): IncidentResultList
+  @source(value: "childIncidents.value")
 }
 
 type User {
-	id: String
-	email: String
+  id: String
+  email: String
 }
 
 type IncidentResultList {
@@ -49,11 +53,11 @@ input QueryPaginate {
 
 input QuerySort {
   by: String!
-  order:SortOrder
+  order: SortOrder
 }
 
 input IncidentQueryFilter {
-  number: StringQueryOperatorInput
+  number: IncidentNumberOperatorInput
   state: IncidentStateOperatorInput
   contactType: IncidentContactTypeOperatorInput
   impact: IncidentImpactOperatorInput
@@ -125,6 +129,26 @@ input StringQueryOperatorInput {
   in: [String]
 }
 
+input StringBetweenQueryFilter {
+  from: String!
+  to: String!
+}
+
+input IncidentNumberOperatorInput {
+  # Filter by property of (strict) equality.
+  eq: String
+  # Filter by property not equal to provided value.
+  ne: String
+  # Filter by property matching any of the provided values.
+  in: [String]
+  nin: [String]
+  lte: String
+  lt: String
+  gt: String
+  gte: String
+  between: StringBetweenQueryFilter
+}
+
 input IncidentStateOperatorInput {
   # Filter by property of (strict) equality.
   eq: IncidentState
@@ -141,6 +165,7 @@ input IncidentContactTypeOperatorInput {
   ne: IncidentContactType
   # Filter by property matching any of the provided values.
   in: [IncidentContactType]
+  nin: [String]
 }
 
 input IncidentUrgencyOperatorInput {
@@ -150,6 +175,7 @@ input IncidentUrgencyOperatorInput {
   ne: IncidentUrgency
   # Filter by property matching any of the provided values.
   in: [IncidentUrgency]
+  nin: [String]
 }
 
 input IncidentImpactOperatorInput {
@@ -159,6 +185,7 @@ input IncidentImpactOperatorInput {
   ne: IncidentImpact
   # Filter by property matching any of the provided values.
   in: [IncidentImpact]
+  nin: [String]
 }
 
 input IncidentPriorityOperatorInput {
@@ -168,4 +195,5 @@ input IncidentPriorityOperatorInput {
   ne: IncidentPriority
   # Filter by property matching any of the provided values.
   in: [IncidentPriority]
+  nin: [String]
 }
