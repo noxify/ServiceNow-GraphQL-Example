@@ -1,3 +1,9 @@
+> # External usage
+> 
+> If you're planning to create an howto, video, blog entry or something else which contains parts or everything from this repo,
+> **PLEASE** don't forget to add the link to this repo in your credits ;) 
+
+
 # ServiceNow GraphQL Example
 
 - [ServiceNow GraphQL Example](#servicenow-graphql-example)
