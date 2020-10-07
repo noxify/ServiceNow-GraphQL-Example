@@ -135,7 +135,7 @@ Moment.js in the version 2.20.1
 
 Source: https://github.com/moment/moment/releases/tag/2.20.1
 
-### Script Include: _ 
+### Script Include: underscore.js 
 
 UnderscoreJS in the version: 1.8.2
 Duplicated from a existing Script Include.
