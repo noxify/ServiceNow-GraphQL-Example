@@ -27,7 +27,7 @@
  * SOFTWARE.
  */
 
-gs.include('_');
+gs.include('underscore.js');
 gs.include('moment.js');
 
 var GraphQLExampleUtilities = Class.create();
