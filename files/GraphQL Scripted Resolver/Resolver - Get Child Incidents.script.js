@@ -1,5 +1,5 @@
 (function process(/*ResolverEnvironment*/ env) {
-    var GraphQLUtils = new x_116934_graphql.GraphQLExampleUtilities();
+    var GraphQLUtils = new global.GraphQLExampleUtilities();
     
     //set parent incident sys id as hardcoded query
     var filter = { parentIncident: { eq: env.getSource()} };
