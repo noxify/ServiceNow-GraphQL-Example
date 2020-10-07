@@ -154,7 +154,7 @@ As you can see in the `files/Script Include/` directory, there are three files w
 
 | Script Include Name          | Content                                                      |
 |------------------------------|--------------------------------------------------------------|
-| `_`                          | Use `files/Script Include/_.script.js`                       |
+| `underscore.js`              | Use `files/Script Include/underscore.js.script.js`           |
 | `moment.js`                  | Use `files/Script Include/moment.js.script.js`               |
 | `GraphQLExampleUtilities`    | Use `files/Script Include/GraphQLExampleUtilities.script.js` |
 
