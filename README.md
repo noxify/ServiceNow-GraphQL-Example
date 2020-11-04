@@ -8,6 +8,7 @@
 
 - [ServiceNow GraphQL Example](#servicenow-graphql-example)
   - [What do we need](#what-do-we-need)
+  - [How to use GraphQL in Service Portal](#how-to-use-graphql-in-service-portal)
   - [(Useful) Links](#useful-links)
   - [What is not included](#what-is-not-included)
   - [What is included](#what-is-included)
@@ -57,6 +58,12 @@
 * [MomentJS](https://www.momentjs.com)
 * [UnderscoreJS](https://www.underscorejs.org)
 * [GraphQL](https://graphql.org/)
+
+## How to use GraphQL in Service Portal
+
+The guys from [serviceportal.io](https://www.serviceportal.io) created a very good video tutorial about "What is GraphQL" and how to use it in the ServiceNow Service Portal.
+
+You can find the video and their sources here: https://serviceportal.io/graphql-in-servicenow/
 
 ## What is not included
 
