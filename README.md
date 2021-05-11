@@ -1,3 +1,10 @@
+> # NO SUPPORT - NO UPDATES
+> Since I switched the role inside the company, I'm not longer working with ServiceNow!
+> I'll keep this repo as boilerplate, but I mark it as archived, because I will not be able to add updates
+> Thanks for reading and trying this example!
+
+---
+
 > # External usage
 > 
 > If you're planning to create an howto, video, blog entry or something else which contains parts or everything from this repo,
